@@ -4,6 +4,7 @@ const { checkUsernameExists, validateRoleName } = require('./auth-middleware');
 const { JWT_SECRET } = require("../secrets"); // use this secret!
 const User = require('../users/users-model')
 const { BCRYPT_ROUNDS } = require('./../../config/index')
+const {tokenBuilder} = require('./auth-helpers')
 
 router.post("/register", validateRoleName, (req, res, next) => {
   let user = req.body
@@ -31,6 +32,30 @@ router.post("/register", validateRoleName, (req, res, next) => {
 
 
 router.post("/login", checkUsernameExists, (req, res, next) => {
+  const { username, password } = req.body
+  if (bcrypt.compareSync(password, req.user.password)) {
+          const token = tokenBuilder(req.user)
+          res.status(200).json({
+            message: `${username} is back!`,
+            token,
+          })
+        } else {
+          next({status: 401, message: 'Invalid credentials'})
+        }
+  
+  // User.findBy({ username })
+  //   .then(([user]) => {
+  //     if (user && bcrypt.compareSync(password, user.password)) {
+  //       const token = tokenBuilder(user)
+  //       res.status(200).json({
+  //         message: `${username} is back!`,
+  //         token,
+  //       })
+  //     } else {
+  //       next({message: 'invalid password'})
+  //     }
+  //   })
+  //   .catch(next)
   /**
     [POST] /api/auth/login { "username": "sue", "password": "1234" }
 
